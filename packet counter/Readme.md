@@ -115,6 +115,5 @@ show my_packet_counter
 
 ```
 
----
 
 
