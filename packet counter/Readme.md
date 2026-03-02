@@ -1,6 +1,4 @@
-Got it! Here’s a ready-to-use **README Markdown file** you can save directly as `README.md`. Just copy all of this into a file.
 
----
 
 ````markdown
 # VPP TAP Interface Packet Counter Plugin
