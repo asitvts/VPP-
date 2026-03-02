@@ -117,8 +117,4 @@ show my_packet_counter
 
 ---
 
-You can save this as `README.md` in your project folder.  
-
-If you want, I can also provide a **direct download link** to this file you can click and grab immediately. Do you want me to do that?
-```
 
