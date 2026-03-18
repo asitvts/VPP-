@@ -45,6 +45,8 @@ static uword packet_proc_func(vlib_main_t* vm, vlib_node_runtime_t* node, vlib_f
         if (ntohs(eth->type) == ETHERNET_TYPE_IP4 &&
         pkt_len >= sizeof(ethernet_header_t) + sizeof(ip4_header_t)) {
 
+            vlib_cli_output(vm, "ether type is IPV4\n");
+
             ip4_header_t *ip4 =
             (ip4_header_t *)(pkt_data + sizeof(ethernet_header_t));
 
@@ -58,16 +60,13 @@ static uword packet_proc_func(vlib_main_t* vm, vlib_node_runtime_t* node, vlib_f
             else if (ip4->protocol == IP_PROTOCOL_ICMP) {
                 vlib_cli_output(vm, "icmp packet\n");
             }
-            
-            // ARP
-            else if (ip4->protocol == IP_PROTOCOL_ICMP) {
-                vlib_cli_output(vm, "ARP packet\n");
-            }
 
+            // IGMP
             else if (ip4->protocol == IP_PROTOCOL_IGMP) {
                 vlib_cli_output(vm, "IGMP packet\n");
             }
-
+            
+            // UDP
             else if (ip4->protocol == IP_PROTOCOL_UDP) {
                 vlib_cli_output(vm, "UDP packet\n");
             }
@@ -78,15 +77,28 @@ static uword packet_proc_func(vlib_main_t* vm, vlib_node_runtime_t* node, vlib_f
         
         }
         else if(ntohs(eth->type) == ETHERNET_TYPE_ARP){
-            vlib_cli_output(vm, "ARP packet\n");
+            vlib_cli_output(vm, "ether type is ARP\n");
         }
         else{
-             vlib_cli_output(vm, "some other form of packet\n");
+             vlib_cli_output(vm, "some other form of eth packet\n");
         }
-
-        vlib_cli_output(vm, "\n\n");
+        
+        
     }
+    vlib_cli_output(vm, "enqueuing the packet to the next node\n");
+    
+    u16 nexts[VLIB_FRAME_SIZE];
 
+    for (u32 i = 0; i < n_packets; i++) {
+        nexts[i] = 0;   // ip4-input is index 0, and that should be same for all packets
+    }
+    vlib_buffer_enqueue_to_next(vm, node, buffers, nexts, n_packets);
+    vlib_cli_output(vm, "enqueued\n");
+
+
+    vlib_cli_output(vm, "\n\n");
+    
+    
     return n_packets;
 }
 
@@ -96,7 +108,7 @@ VLIB_REGISTER_NODE(my_simple_node) = {
     .function = packet_proc_func,
     .type = VLIB_NODE_TYPE_INTERNAL,
     .n_next_nodes = 1,
-    .next_nodes = {"error-drop"}
+    .next_nodes = {"ethernet-input"}
 };
 
 // Attach node to device-input feature arc
